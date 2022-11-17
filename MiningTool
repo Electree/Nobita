@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Language" content="zh-CN" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		<title>大雄的牧场物语记矿工具</title>
+		<style type="text/css">
+			html body {
+				background: #fff;
+				height:100%;
+				width:100%;
+				padding:0;
+				margin:0;
+				display:flex;
+				flex-direction:column;
+				justify-content:flex-end;
+			}
+			canvas {
+				background: #fff;
+				margin: 0 auto;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:0;
+			}
+			.float{
+				color:transparent;
+				display:flex;
+				display:-webkit-flex;
+				top:0%;
+				left:0%;
+				width:100%;
+				height:100%;
+				z-index:1;
+			}
+			a{
+				display:flex;
+				display:-webkit-flex;
+				z-index:3;
+			}
+			#rf {
+				position:absolute;
+				top:0%;
+				left:0%;
+				min-width:12%;
+				min-height:12%;
+				z-index:1;
+				color:white;
+				text-shadow:-1px -1px 0 #A84155;
+				background: #D25068;
+				border:1px solid #D25068;
+				background-image:-webkit-linear-gradient(top, #F66C7B, #D25068);
+				background-image:-moz-linear-gradient(top, #F66C7B, #D25068);
+				background-image:-ms-linear-gradient(top, #F66C7B, #D25068);
+				background-image:-o-linear-gradient(top, #F66C7B, #D25068);
+				background-image:linear-gradient(to bottom, #F66C7B, #D25068);
+				-webkit-border-radius:5px;
+				-moz-border-radius:5px;
+				border-radius:5px;
+				-webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
+				-moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
+				box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
+			}
+			
+			.rf:hover {
+				background: #F66C7B;
+				background-image:-webkit-linear-gradient(top, #D25068, #F66C7B);
+				background-image:-moz-linear-gradient(top, #D25068, #F66C7B);
+				background-image:-ms-linear-gradient(top, #D25068, #F66C7B);
+				background-image:-o-linear-gradient(top, #D25068, #F66C7B);
+				background-image:linear-gradient(top, #D25068, #F66C7B);
+			}
+		</style>
+
+		<script type="text/javascript">
+			// Canvas类
+			class Canvas {
+				constructor (ele) {// 构造器（参数是一个canvas元素）
+					// 设置canvas
+					this.canvas = ele;
+					this.ctx = ele.getContext('2d');
+					// 全局菱形容器
+					this.blockList = [];
+					// 绑定canvas点击事件
+					this.canvas.addEventListener('click', event=>{
+						this.mousedownEvent(event);
+					});
+				}
+				
+				createBlock (option) {// 菱形压入全局菱形容器，并且重绘canvas
+					option.Canvas = this;
+					this.blockList.push(new Block(option));
+					this.painting(null);
+				}
+				
+				rendering (block) {// 渲染菱形
+					this.ctx.fillStyle = block.color;
+					this.ctx.beginPath();
+					this.ctx.moveTo(block.x-block.rx*0.5,block.y);//左
+					this.ctx.lineTo(block.x,block.y+block.ry*0.5);//上
+					this.ctx.lineTo(block.x+block.rx*0.5,block.y);//右
+					this.ctx.lineTo(block.x,block.y-block.ry*0.5);//下
+					this.ctx.closePath();
+					this.ctx.fill();
+					this.ctx.stroke();
+				}
+				
+				painting (e) {// 将容器里的菱形全部渲染到canvas
+					// 清空画布（渲染之前重绘canvas为空白）
+					this.ctx.fillStyle = '#fff';
+					this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+					this.blockList.forEach(ele => {
+						this.rendering(ele);
+						if(e!=null){
+							if(this.ctx.isPointInPath(e.offsetX, e.offsetY)){
+							
+								ele.ctx.fillStyle = "red";
+								this.rendering(ele);
+							}
+						}else{
+							this.rendering(ele);
+						}
+					});
+				}
+				
+				mousedownEvent (e){// 点击事件
+					var px = e.offsetX;
+					var py = e.offsetY;
+					//console.log("x:"+px);
+					//console.log("y:"+py);
+					// 这里将点击的坐标传给所有色块，根据边界判断方法判断是否在点击在内部。是的话执行色块的事件方法。
+					this.blockList.forEach(ele => {
+						
+						if (ele.insideDiamond(px, py)){
+							//console.log(ele);
+							ele.mousedownEvent(e,ele,this);
+						}
+					});
+				}	// 点击事件
+				
+			}
+			class Block {
+				constructor ({x, y, rx, ry, color, Canvas }) {//构造器（菱形中心横,纵坐标, 横轴长度,纵轴长度, 画在拿个canvas）
+					this.x = x;
+					this.y = y;
+					this.rx = rx;
+					this.ry = ry;
+					this.color = color;
+					this.Canvas = Canvas;
+				}
+				
+				insideDiamond (x, y) {// 判断点击位置是否在菱形内部
+					var cx = x-this.x;
+					var cy = y-this.y;
+					var tx = this.rx;
+					var ty = this.ry;
+					if (Math.abs(cx * ty) + Math.abs(cy * tx) < tx * ty * 0.5) {
+						return true;
+					}else{
+						return false;
+					}
+				}
+				
+				mousedownEvent (e,obj,cvs) {// 点击事件
+					if (obj.color=="lightgrey"){
+						obj.color="green";
+					}else if(obj.color=="green"){
+						obj.color="red";
+					}else{
+						console.log(obj.color);
+						obj.color="lightgrey";
+					}
+					cvs.blockList.forEach(ele => {
+						cvs.rendering(ele);
+					});
+				}
+				
+			}
+			
+			addEventListener("load",function(){//页面加载完毕后
+				// 创建Canvas实例，添加7x7菱形矩阵
+				var cv = document.getElementById('canvas');
+				var canvas = new Canvas(cv);
+				var winWidth = window.innerWidth;//窗体大小
+				var winHeight = window.innerHeight;//窗体大小
+				var rw;
+				var rh;
+				var kx;
+				var ky;
+				var ki;
+				var kj;
+				if(winWidth*2<winHeight){
+					cv.width  = winWidth;
+					cv.height = winWidth*0.5;
+					cv.setAttribute("style", "top:10%");
+				}else if(winWidth<winHeight){
+					cv.width  = winWidth;
+					cv.height = winWidth*0.5;
+					cv.setAttribute("style", "top:10%");
+					document.getElementById("rf").setAttribute("style", "min-width:24%");
+				}else{
+					cv.width  = winWidth;
+					cv.height = winHeight;
+				}
+				//cv.width  = winWidth;
+
+				//cv.height = winHeight;
+
+				var x0,y0;
+				x0 = cv.width/2;
+				y0 = cv.height/2;
+				rw = cv.width/7;
+				rh = cv.height/7;
+				kx = cv.width/14;
+				ky = cv.height/14;
+				for(var i=-3;i<4;i++){
+					for(var j=-3;j<4;j++){
+						canvas.createBlock({
+							x: x0+(i-j)*kx,
+							y: y0+(i+j)*ky,
+							rx: rw,
+							ry: rh,
+							color: 'lightgrey'
+						});
+					}
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<div class="float">
+			<input id="rf" type="button" onclick="javascript:location.reload();" value="重置(Reset)">
+			<span>
+				<a>交流群(QQ):136363732</a>
+			</span>
+		</div>
+		<div>
+			<canvas id="canvas"></canvas>
+		</div>
+		
+		
+	</body>
+</html>
