@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<meta http-equiv="Content-Language" content="zh-CN" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="Content-Language" content="zh-CN">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 		<title>大雄的牧场物语记矿工具</title>
 		<style type="text/css">
 			html body {
@@ -178,7 +178,7 @@
 				
 			}
 			
-			addEventListener("load",function(){//页面加载完毕后
+			function ini(){
 				// 创建Canvas实例，添加7x7菱形矩阵
 				var cv = document.getElementById('canvas');
 				var canvas = new Canvas(cv);
@@ -225,14 +225,18 @@
 						});
 					}
 				}
+			}
+			
+			addEventListener("load",function(){
+				ini();
 			});
 		</script>
 	</head>
 	<body>
 		<div class="float">
-			<input id="rf" type="button" onclick="javascript:location.reload();" value="重置(Reset)">
+			<input id="rf" type="button" onclick="javascript:ini();" value="重置(Reset)">
 			<span>
-				<a>交流群(QQ):136363732</a>
+				<a href="https://jq.qq.com/?_wv=1027&k=tzcj0aYC">交流群(QQ):136363732</a>
 			</span>
 		</div>
 		<div>
@@ -240,5 +244,6 @@
 		</div>
 		
 		
-	</body>
-</html>
+	
+
+</body></html>
