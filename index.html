@@ -16,6 +16,24 @@
 				flex-direction:column;
 				justify-content:flex-end;
 			}
+			a{
+				color:black;
+				font-style:normal;
+				text-decoration:none;
+				font-size:1.2vw;
+			}
+			a:link {
+				color:black;
+			}
+			a:visited {
+				color:black;
+			}
+			a:hover {
+				color:red;
+			}
+			a:active {
+				color:red;
+			}
 			canvas {
 				background: #fff;
 				margin: 0 auto;
@@ -34,6 +52,11 @@
 				height:100%;
 				z-index:1;
 			}
+			span{
+				position:absolute; 
+				bottom:0; 
+				right:0;
+			}
 			a{
 				display:flex;
 				display:-webkit-flex;
@@ -43,8 +66,6 @@
 				position:absolute;
 				top:0%;
 				left:0%;
-				min-width:12%;
-				min-height:12%;
 				z-index:1;
 				color:white;
 				text-shadow:-1px -1px 0 #A84155;
@@ -55,9 +76,9 @@
 				background-image:-ms-linear-gradient(top, #F66C7B, #D25068);
 				background-image:-o-linear-gradient(top, #F66C7B, #D25068);
 				background-image:linear-gradient(to bottom, #F66C7B, #D25068);
-				-webkit-border-radius:5px;
-				-moz-border-radius:5px;
-				border-radius:5px;
+				-webkit-border-radius:5%;
+				-moz-border-radius:5%;
+				border-radius:5%;
 				-webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
 				-moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
 				box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #AD4257, 0 4px 2px rgba(0, 0, 0, .5);
@@ -181,39 +202,52 @@
 			function ini(){
 				// 创建Canvas实例，添加7x7菱形矩阵
 				var cv = document.getElementById('canvas');
-				var canvas = new Canvas(cv);
-				var winWidth = window.innerWidth;//窗体大小
-				var winHeight = window.innerHeight;//窗体大小
-				var rw;
-				var rh;
-				var kx;
-				var ky;
-				var ki;
-				var kj;
-				if(winWidth*2<winHeight){
-					cv.width  = winWidth;
-					cv.height = winWidth*0.5;
-					cv.setAttribute("style", "top:10%");
-				}else if(winWidth<winHeight){
-					cv.width  = winWidth;
-					cv.height = winWidth*0.5;
-					cv.setAttribute("style", "top:10%");
-					document.getElementById("rf").setAttribute("style", "min-width:24%");
-				}else{
-					cv.width  = winWidth;
+				var winWidth = window.innerWidth;//浏览器窗体大小
+				var winHeight = window.innerHeight;//浏览器窗体大小
+				var rw;//每格宽
+				var rh;//每格高
+				var kx;//半格宽
+				var ky;//半格高
+				var winLeft;//左边空隙
+				var winTop;//右边空隙
+				var btnW;//按钮宽
+				var btnH;//按钮高
+				fontS="2.0vw";
+				if(winHeight*1732<=winWidth*1000){
+					//横屏，高占满，两边可能有空隙
 					cv.height = winHeight;
+					cv.width  = cv.height*1.732;
+					winLeft = (winWidth-cv.width)*0.5;
+					winTop = 0;
+					cv.setAttribute("style", "left:"+winLeft+"px;");//理论上的自然空隙
+					btnH = "19.1%";
+					btnW = cv.height*33.0812/winWidth+"%";
+				}else{
+					//宽用满，反算高，看高是否满足
+					cv.width  = winWidth;
+					cv.height = cv.width/1.732;
+					cv.width  = cv.height*1.732;//试图消除浮点数除法误差
+					btnH = winWidth*11.0277/winHeight+"%";
+					btnW = "19.1%";
+					if(cv.height<=winHeight){//高可接受，上下有空隙
+						winTop = (winHeight-cv.height)*0.5;
+						winLeft = 0;
+						cv.setAttribute("style", "top:"+winTop+"px;");//理论上的自然空隙
+					}else{//高不可接受，高用满，反算宽  感觉不可能存在此类情况
+						alert("!?");
+					}
 				}
-				//cv.width  = winWidth;
-
-				//cv.height = winHeight;
-
-				var x0,y0;
-				x0 = cv.width/2;
-				y0 = cv.height/2;
+				document.getElementById("rf").setAttribute("style", "Height:"+btnH+";Width:"+btnW+";font-size:"+fontS+";");
+				var x0,y0;//canvas中心
+				x0 = cv.width/2;//试图找到全局中心
+				y0 = cv.height/2;//试图找到全局中心
 				rw = cv.width/7;
 				rh = cv.height/7;
 				kx = cv.width/14;
 				ky = cv.height/14;
+				//清空容器
+				var canvas = window.thatCanvas;
+				canvas.blockList=[];
 				for(var i=-3;i<4;i++){
 					for(var j=-3;j<4;j++){
 						canvas.createBlock({
@@ -228,6 +262,8 @@
 			}
 			
 			addEventListener("load",function(){
+				let cv = document.getElementById('canvas');
+				window.thatCanvas = new Canvas(cv);//canvas.blockList 是菱形容器,canvas 接受click事件
 				ini();
 			});
 		</script>
@@ -236,7 +272,7 @@
 		<div class="float">
 			<input id="rf" type="button" onclick="javascript:ini();" value="重置(Reset)">
 			<span>
-				<a href="https://jq.qq.com/?_wv=1027&k=tzcj0aYC">交流群(QQ):136363732</a>
+				<a href="https://jq.qq.com/?_wv=1027&k=tzcj0aYC" target=_blank>交流群(QQ):136363732</a>
 			</span>
 		</div>
 		<div>
